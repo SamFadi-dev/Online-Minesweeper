@@ -1,3 +1,7 @@
-public class MinesweeperClient {
+import java.io.*;
+import java.net.*;
+
+public class MinesweeperClient
+{
 
 }
