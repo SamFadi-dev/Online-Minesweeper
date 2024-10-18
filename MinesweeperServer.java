@@ -16,12 +16,22 @@ public class MinesweeperServer
     {
         MinesweeperServer server = new MinesweeperServer();
         server.createInitialBoard();
-        ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("Server started on port " + PORT);
-        while(true)
+        try(ServerSocket serverSocket = new ServerSocket(PORT))
         {
+            System.out.println("New server socket started on port " + PORT);
+            while (true)
+            {
+                handleClientConnection(server, serverSocket);
+            }
+        }
+    }
+
+    private static void handleClientConnection(MinesweeperServer server, ServerSocket serverSocket)
+    {
+        try
+        {
+            // Check if the client is connected
             Socket clientSocket = serverSocket.accept();
-            // Check if the client connected successfully
             if(clientSocket.isConnected())
             {
                 System.out.println("Client " + clientSocket.getPort() + " connected.");
@@ -30,59 +40,87 @@ public class MinesweeperServer
             {
                 System.out.println("Client failed to connect.");
                 clientSocket.close();
-                continue;
+                return;
             }
-            OutputStream outputServer = clientSocket.getOutputStream();
-            InputStream inputClient = clientSocket.getInputStream();
-            byte msg[] = new byte[1024];
+            // Process the client's requests (e.g. try, flag, cheat, quit)
+            processClientRequests(server, clientSocket);
+        } 
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
-            while (true) 
+    private static void processClientRequests(MinesweeperServer server, Socket clientSocket) throws IOException
+    {
+        try (OutputStream outputServer = clientSocket.getOutputStream();
+             InputStream inputClient = clientSocket.getInputStream())
+        {
+            byte[] msg = new byte[1024];
+            // Loop until the client sends a "QUIT" command
+            while(true)
             {
-                // Read the message from the client and act accordingly
                 int len = inputClient.read(msg);
                 String receivedMessage = new String(msg, 0, len).trim();
-                if(!isClientInputValid(receivedMessage, outputServer))
-                {
-                    printWrongInputMessage(clientSocket);
-                    continue;
-                }
                 if(isQuitCommand(receivedMessage))
                 {
-                    printDisconnectedMessage(clientSocket);
-                    outputServer.write("GOODBYE".getBytes());
-                    outputServer.flush();
-                    // Close the client socket and break the loop
+                    handleQuitCommand(clientSocket, outputServer);
                     break;
-                }
+                } 
                 else if(isCheatCommand(receivedMessage))
                 {
-                    outputServer.write(server.convertBoardToString().getBytes());
-                    outputServer.flush();
-                    continue;
-                }
+                    handleCheatCommand(server, outputServer);
+                } 
                 else if(isFlagCommand(receivedMessage))
                 {
-                    outputServer.write("FLAG".getBytes());
-                    outputServer.flush();
-                    continue;
-                }
+                    handleFlagCommand(outputServer);
+                } 
                 else if(isTryCommand(receivedMessage))
                 {
-                    outputServer.write("TRY".getBytes());
-                    outputServer.flush();
-                    continue;
-                }
-                // Wrong command => restart the loop
-                else
+                    handleTryCommand(outputServer);
+                } 
+                else 
                 {
-                    outputServer.write("WRONG".getBytes());
-                    outputServer.flush();
-                    printWrongInputMessage(clientSocket);
-                    continue;
+                    handleWrongCommand(clientSocket, outputServer);
                 }
             }
-            clientSocket.close();
         }
+    }
+
+    private static void handleQuitCommand(Socket clientSocket, OutputStream outputServer)
+        throws IOException
+    {
+        printDisconnectedMessage(clientSocket);
+        outputServer.write("GOODBYE".getBytes());
+        outputServer.flush();
+        clientSocket.close();
+    }
+    
+    private static void handleCheatCommand(MinesweeperServer server, OutputStream outputServer)
+        throws IOException
+    {
+        outputServer.write(server.convertBoardToString().getBytes());
+        outputServer.flush();
+    }
+    
+    private static void handleFlagCommand(OutputStream outputServer) throws IOException
+    {
+        outputServer.write("FLAG".getBytes());
+        outputServer.flush();
+    }
+    
+    private static void handleTryCommand(OutputStream outputServer) throws IOException
+    {
+        outputServer.write("TRY".getBytes());
+        outputServer.flush();
+    }
+    
+    private static void handleWrongCommand(Socket clientSocket, OutputStream outputServer) 
+        throws IOException
+    {
+        outputServer.write("WRONG".getBytes());
+        outputServer.flush();
+        printWrongInputMessage(clientSocket);
     }
 
     /**
