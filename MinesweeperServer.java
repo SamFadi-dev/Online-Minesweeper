@@ -1,9 +1,128 @@
+import java.io.*;
+import java.net.*;
+
 public class MinesweeperServer
 {
+    public static final short PORT = 2377;
     private static final short BOARD_SIZE = 7;
     private static final short NUM_MINES = BOARD_SIZE;
-    private static final short PORT = 2377;
     private char[][] currentBoard;
+    private static final String QUIT_COMMAND = "QUIT";
+    private static final String TRY_COMMAND = "TRY";
+    private static final String FLAG_COMMAND = "FLAG";
+    private static final String CHEAT_COMMAND = "CHEAT";
+
+    public static void main(String[] args) throws IOException
+    {
+        MinesweeperServer server = new MinesweeperServer();
+        server.createInitialBoard();
+        ServerSocket serverSocket = new ServerSocket(PORT);
+        System.out.println("Server started on port " + PORT);
+        while(true)
+        {
+            Socket clientSocket = serverSocket.accept();
+            // Check if the client connected successfully
+            if(clientSocket.isConnected())
+            {
+                System.out.println("Client " + clientSocket.getPort() + " connected.");
+            }
+            else
+            {
+                System.out.println("Client failed to connect.");
+                clientSocket.close();
+                continue;
+            }
+            OutputStream outputServer = clientSocket.getOutputStream();
+            InputStream inputClient = clientSocket.getInputStream();
+            byte msg[] = new byte[1024];
+
+            while (true) 
+            {
+                // Read the message from the client
+                int len = inputClient.read(msg);
+                String receivedMessage = new String(msg, 0, len).trim();
+                if(!isClientInputValid(receivedMessage, outputServer))
+                {
+                    printWrongInputMessage(clientSocket);
+                    continue;
+                }
+                if(isQuitCommand(receivedMessage))
+                {
+                    printDisconnectedMessage(clientSocket);
+                    outputServer.write("GOODBYE".getBytes());
+                    break;
+                }
+                else if(isCheatCommand(receivedMessage))
+                {
+                    outputServer.write(server.convertBoardToString().getBytes());
+                    outputServer.flush();
+                    continue;
+                }
+                else if(isFlagCommand(receivedMessage))
+                {
+                    outputServer.write("FLAG".getBytes());
+                    outputServer.flush();
+                    continue;
+                }
+                else if(isTryCommand(receivedMessage))
+                {
+                    outputServer.write("TRY".getBytes());
+                    outputServer.flush();
+                    continue;
+                }
+                // Wrong command => restart the loop
+                else
+                {
+                    outputServer.write("WRONG".getBytes());
+                    continue;
+                }
+            }
+            clientSocket.close();
+        }
+    }
+
+    private static void printWrongInputMessage(Socket clientSocket)
+    {
+        System.out.println("Client " + clientSocket.getPort() + " sent an invalid command.");
+    }
+
+    private static void printDisconnectedMessage(Socket clientSocket)
+    {
+        System.out.println("Client " + clientSocket.getPort() + " disconnected.");
+    }
+
+    private static boolean isTryCommand(String input)
+    {
+        return input.startsWith(TRY_COMMAND);
+    }
+
+    private static boolean isFlagCommand(String input)
+    {
+        return input.startsWith(FLAG_COMMAND);
+    }
+
+    private static boolean isQuitCommand(String input)
+    {
+        return input.equals(QUIT_COMMAND);
+    }
+
+    private static boolean isCheatCommand(String input)
+    {
+        return input.equals(CHEAT_COMMAND);
+    }
+
+    private static boolean isClientInputValid(String input, OutputStream outputServer) throws IOException
+    {
+        if(!isQuitCommand(input)
+            && !isTryCommand(input)
+            && !isFlagCommand(input)
+            && !isCheatCommand(input))
+        {
+            outputServer.write("WRONG".getBytes());
+            return false;
+        }
+        return true;
+    }
 
     private void createInitialBoard()
     {
@@ -16,6 +135,20 @@ public class MinesweeperServer
             }
         }
         currentBoard = board;
+    }
+
+    private String convertBoardToString()
+    {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < BOARD_SIZE; i++)
+        {
+            for(int j = 0; j < BOARD_SIZE; j++)
+            {
+                sb.append(currentBoard[i][j]);
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
     private int getNumberOfAdjacentMines(int x, int y)
