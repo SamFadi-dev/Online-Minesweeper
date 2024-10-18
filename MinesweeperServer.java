@@ -38,7 +38,7 @@ public class MinesweeperServer
 
             while (true) 
             {
-                // Read the message from the client
+                // Read the message from the client and act accordingly
                 int len = inputClient.read(msg);
                 String receivedMessage = new String(msg, 0, len).trim();
                 if(!isClientInputValid(receivedMessage, outputServer))
@@ -50,6 +50,8 @@ public class MinesweeperServer
                 {
                     printDisconnectedMessage(clientSocket);
                     outputServer.write("GOODBYE".getBytes());
+                    outputServer.flush();
+                    // Close the client socket and break the loop
                     break;
                 }
                 else if(isCheatCommand(receivedMessage))
@@ -74,6 +76,8 @@ public class MinesweeperServer
                 else
                 {
                     outputServer.write("WRONG".getBytes());
+                    outputServer.flush();
+                    printWrongInputMessage(clientSocket);
                     continue;
                 }
             }
@@ -81,36 +85,72 @@ public class MinesweeperServer
         }
     }
 
+    /**
+     * Print a message to the console indicating that the client sent an invalid command.
+     * @param clientSocket The client socket that sent the invalid command.
+     */
     private static void printWrongInputMessage(Socket clientSocket)
     {
         System.out.println("Client " + clientSocket.getPort() + " sent an invalid command.");
     }
 
+    /**
+     * Print a message to the console indicating that the client disconnected.
+     * @param clientSocket The client socket that disconnected.
+     */
     private static void printDisconnectedMessage(Socket clientSocket)
     {
         System.out.println("Client " + clientSocket.getPort() + " disconnected.");
     }
 
+    /**
+     * Check if the input from the client is a valid command.
+     * @param input The input from the client.
+     * @param outputServer The output stream to the client.
+     * @return True if the input is a valid command, false otherwise.
+     */
     private static boolean isTryCommand(String input)
     {
         return input.startsWith(TRY_COMMAND);
     }
 
+    /**
+     * Check if the input from the client is a valid command.
+     * @param input The input from the client.
+     * @param outputServer The output stream to the client.
+     * @return True if the input is a valid command, false otherwise.
+     */
     private static boolean isFlagCommand(String input)
     {
         return input.startsWith(FLAG_COMMAND);
     }
 
+    /**
+     * Check if the input from the client is a valid command.
+     * @param input The input from the client.
+     * @return True if the input is a valid command, false otherwise.
+     */
     private static boolean isQuitCommand(String input)
     {
         return input.equals(QUIT_COMMAND);
     }
 
+    /**
+     * Check if the input from the client is a valid command.
+     * @param input The input from the client.
+     * @return True if the input is a valid command, false otherwise.
+     */
     private static boolean isCheatCommand(String input)
     {
         return input.equals(CHEAT_COMMAND);
     }
 
+    /**
+     * Check if the input from the client is a valid command.
+     * @param input The input from the client.
+     * @param outputServer The output stream to the client.
+     * @return True if the input is a valid command, false otherwise.
+     */
     private static boolean isClientInputValid(String input, OutputStream outputServer) throws IOException
     {
         if(!isQuitCommand(input)
