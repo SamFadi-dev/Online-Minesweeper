@@ -26,6 +26,12 @@ public class MinesweeperServer
         }
     }
 
+    /**
+     * Handle the connection between the server and the client.
+     * @param server The MinesweeperServer object.
+     * @param serverSocket The server socket.
+     * @throws IOException If an I/O error occurs.
+     */
     private static void handleClientConnection(MinesweeperServer server, ServerSocket serverSocket)
     {
         try
@@ -51,6 +57,12 @@ public class MinesweeperServer
         }
     }
 
+    /**
+     * Process the client's requests.
+     * @param server The MinesweeperServer object.
+     * @param clientSocket The client socket.
+     * @throws IOException If an I/O error occurs.
+     */
     private static void processClientRequests(MinesweeperServer server, Socket clientSocket) throws IOException
     {
         try (OutputStream outputServer = clientSocket.getOutputStream();
@@ -73,11 +85,11 @@ public class MinesweeperServer
                 } 
                 else if(isFlagCommand(receivedMessage))
                 {
-                    handleFlagCommand(outputServer);
+                    handleFlagCommand(outputServer, receivedMessage);
                 } 
                 else if(isTryCommand(receivedMessage))
                 {
-                    handleTryCommand(outputServer);
+                    handleTryCommand(outputServer, receivedMessage);
                 } 
                 else 
                 {
@@ -87,6 +99,12 @@ public class MinesweeperServer
         }
     }
 
+    /**
+     * Handle the "QUIT" command from the client.
+     * @param clientSocket The client socket.
+     * @param outputServer The output stream to the client.
+     * @throws IOException If an I/O error occurs.
+     */
     private static void handleQuitCommand(Socket clientSocket, OutputStream outputServer)
         throws IOException
     {
@@ -96,6 +114,12 @@ public class MinesweeperServer
         clientSocket.close();
     }
     
+    /**
+     * Handle the "CHEAT" command from the client.
+     * @param server The MinesweeperServer object.
+     * @param outputServer The output stream to the client.
+     * @throws IOException If an I/O error occurs.
+     */
     private static void handleCheatCommand(MinesweeperServer server, OutputStream outputServer)
         throws IOException
     {
@@ -103,18 +127,52 @@ public class MinesweeperServer
         outputServer.flush();
     }
     
-    private static void handleFlagCommand(OutputStream outputServer) throws IOException
+    /**
+     * Handle the "FLAG" command from the client.
+     * @param outputServer The output stream to the client.
+     * @throws IOException If an I/O error occurs.
+     */
+    private static void handleFlagCommand(OutputStream outputServer, String input) throws IOException
     {
-        outputServer.write("FLAG".getBytes());
-        outputServer.flush();
+        // Write the updated grid to the client if the coordinates are valid
+        if(areCorrectCoordinates(input))
+        {
+            outputServer.write("FLAG".getBytes());
+            outputServer.flush();
+        }
+        else
+        {
+            outputServer.write("INVALID RANGE".getBytes());
+            outputServer.flush();
+        }
     }
     
-    private static void handleTryCommand(OutputStream outputServer) throws IOException
+    /**
+     * Handle the "TRY" command from the client.
+     * @param outputServer The output stream to the client.
+     * @throws IOException If an I/O error occurs.
+     */
+    private static void handleTryCommand(OutputStream outputServer, String input) throws IOException
     {
-        outputServer.write("TRY".getBytes());
-        outputServer.flush();
+        // Write the updated grid to the client if the coordinates are valid
+        if(areCorrectCoordinates(input))
+        {
+            outputServer.write("TRY".getBytes());
+            outputServer.flush();
+        }
+        else
+        {
+            outputServer.write("INVALID RANGE".getBytes());
+            outputServer.flush();
+        }
     }
     
+    /**
+     * Handle an invalid command from the client.
+     * @param clientSocket The client socket.
+     * @param outputServer The output stream to the client.
+     * @throws IOException If an I/O error occurs.
+     */
     private static void handleWrongCommand(Socket clientSocket, OutputStream outputServer) 
         throws IOException
     {
@@ -142,7 +200,7 @@ public class MinesweeperServer
     }
 
     /**
-     * Check if the input from the client is a valid command.
+     * Check if the input is a TRY command.
      * @param input The input from the client.
      * @param outputServer The output stream to the client.
      * @return True if the input is a valid command, false otherwise.
@@ -153,14 +211,62 @@ public class MinesweeperServer
     }
 
     /**
-     * Check if the input from the client is a valid command.
+     * Check if the input is a FLAG command.
      * @param input The input from the client.
      * @param outputServer The output stream to the client.
      * @return True if the input is a valid command, false otherwise.
      */
     private static boolean isFlagCommand(String input)
-    {
+    {        
         return input.startsWith(FLAG_COMMAND);
+    }
+
+    /**
+     * Check if the coordinates from the client are valid.
+     * @param input The input from the client.
+     * @param outputServer The output stream to the client.
+     * @return True if the input is a valid command, false otherwise.
+     */
+    private static boolean areCorrectCoordinates(String input)
+    {
+        // Divide the input into three parts: the command,
+        // the x coordinate, and the y coordinate
+        String[] parts = input.split(" ");
+        if (parts.length == 3)
+        {
+            if(!isNumeric(parts[1]) || !isNumeric(parts[2]))
+            {
+                return false;
+            }
+            int x = Integer.parseInt(parts[1]);
+            int y = Integer.parseInt(parts[2]);
+            if(x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE)
+            {
+                return false;
+            }  
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if the input string is a number.
+     * @param str The input string.
+     * @return True if the input is a number, false otherwise.
+     */
+    private static boolean isNumeric(String str)
+    {
+        for(char c : str.toCharArray())
+        {
+            if(!Character.isDigit(c))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -181,25 +287,6 @@ public class MinesweeperServer
     private static boolean isCheatCommand(String input)
     {
         return input.equals(CHEAT_COMMAND);
-    }
-
-    /**
-     * Check if the input from the client is a valid command.
-     * @param input The input from the client.
-     * @param outputServer The output stream to the client.
-     * @return True if the input is a valid command, false otherwise.
-     */
-    private static boolean isClientInputValid(String input, OutputStream outputServer) throws IOException
-    {
-        if(!isQuitCommand(input)
-            && !isTryCommand(input)
-            && !isFlagCommand(input)
-            && !isCheatCommand(input))
-        {
-            outputServer.write("WRONG".getBytes());
-            return false;
-        }
-        return true;
     }
 
     private void createInitialBoard()
