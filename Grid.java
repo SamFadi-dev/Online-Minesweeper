@@ -1,11 +1,9 @@
-import java.util.*;
-
 public class Grid
 {
     private short gridSize = 7;
     private short numberMines = gridSize;
     private short numberTurnsPlayed = 0;
-    private Coordinate[][] currentBoard;
+    private Coordinate[][] currentGrid;
 
     /**
      * Constructor for the Grid class.
@@ -49,25 +47,140 @@ public class Grid
                     (i, j, Coordinate.UNREVEALED, Coordinate.Status.UNREVEALED);
             }
         }
-        currentBoard = board;
+        currentGrid = board;
+    }
+
+    public void computeFinalGrid()
+    {
+        for(int i = 0; i < gridSize; i++)
+        {
+            for(int j = 0; j < gridSize; j++)
+            {
+                if(currentGrid[i][j].getCoordinateValue() != Coordinate.BOMB)
+                {
+                    currentGrid[i][j].setValue
+                        ((char)(getNumberOfAdjacentMines(j, i) + '0'));
+                }
+            }
+        }
+        printBoard();
+    }
+
+    public void revealCell(int x, int y)
+    {
+        if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
+        {
+            System.out.println("Invalid coordinates.");
+            return;
+        }
+        if(numberTurnsPlayed == 0)
+        {
+            placeMines();
+            computeFinalGrid();
+        }
+        else if(currentGrid[x][y].getCoordinateStatus() == Coordinate.Status.REVEALED)
+        {
+            return;
+        }
+        else if(currentGrid[x][y].getCoordinateValue() == Coordinate.BOMB)
+        {
+            System.out.println("Game over.");
+            currentGrid[x][y].setStatuts(Coordinate.Status.REVEALED);
+            printBoard();
+            return;
+        }
+        currentGrid[x][y].setStatuts(Coordinate.Status.REVEALED);
+        numberTurnsPlayed++;
+        if(currentGrid[x][y].getCoordinateValue() == '0')
+        {
+            propagateReveal(x, y);
+        }
+    }
+
+    private void propagateReveal(int x, int y)
+    {
+        if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
+        {
+            System.out.println("Invalid coordinates.");
+            return;
+        }
+        if(currentGrid[x][y].getCoordinateValue() == Coordinate.BOMB)
+        {
+            return;
+        }
+        if (currentGrid[x][y].getCoordinateStatus() == Coordinate.Status.REVEALED)
+        {
+            return;
+        }
+        currentGrid[x][y].setStatuts(Coordinate.Status.REVEALED);
+
+        // If the cell is empty, reveal all adjacent cells
+        if(currentGrid[x][y].getCoordinateValue() == '0')
+        {
+            for(int i = x - 1; i <= x + 1; i++)
+            {
+                for(int j = y - 1; j <= y + 1; j++)
+                {
+                    if(i >= 0 && i < gridSize && j >= 0 && j < gridSize)
+                    {
+                        if(currentGrid[i][j].getCoordinateStatus() 
+                            == Coordinate.Status.UNREVEALED)
+                        {
+                            propagateReveal(i, j);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Convert the grid to a string.
+     * @param forceReveal If true, reveal all cells. (CHEAT)
      * @return The grid as a string.
      */
-    public String convertGridToString()
+    public String convertGridToProtocol(boolean forceReveal)
     {
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < gridSize; i++)
         {
             for(int j = 0; j < gridSize; j++)
             {
-                sb.append(currentBoard[i][j].getCoordinateValue());
+                // If we want to force reveal the grid, show all cells (CHEAT)
+                if(forceReveal)
+                {
+                    sb.append(currentGrid[i][j].getCoordinateValue());
+                }
+                // If the cell is unrevealed, show the unrevealed character
+                else if(currentGrid[i][j].getCoordinateStatus() == Coordinate.Status.UNREVEALED)
+                {
+                    sb.append(Coordinate.UNREVEALED);
+                }
+                // If the cell is revealed, show the value
+                else if(currentGrid[i][j].getCoordinateStatus() == Coordinate.Status.REVEALED)
+                {
+                    sb.append(currentGrid[i][j].getCoordinateValue());
+                }
+                // If the cell is flagged, show the flag character
+                else
+                {
+                    sb.append(Coordinate.FLAG);
+                }
             }
+            sb.append("\\r\\n");
             sb.append("\n");
         }
+        sb.append("\\r\\n");
         return sb.toString();
+    }
+
+    public String revealAllCells()
+    {
+        if(numberTurnsPlayed == 0)
+        {
+            return new String("GAME NOT STARTED\\r\\n");
+        }
+        return convertGridToProtocol(true);
     }
 
     /**
@@ -90,7 +203,7 @@ public class Grid
             {
                 if(i >= 0 && i < gridSize && j >= 0 && j < gridSize)
                 {
-                    if(currentBoard[i][j].getCoordinateValue() == 'B')
+                    if(currentGrid[i][j].getCoordinateValue() == Coordinate.BOMB)
                     {
                         numMines++;
                     }
@@ -111,13 +224,13 @@ public class Grid
             int x = (int)(Math.random() * gridSize);
             int y = (int)(Math.random() * gridSize);
             // If there is already a mine at this location, try again
-            if(currentBoard[x][y].getCoordinateValue() == 'B')
+            if(currentGrid[x][y].getCoordinateValue() == Coordinate.BOMB)
             {
                 i--;
             }
             else
             {
-                currentBoard[x][y].setCoordinateValue(Coordinate.BOMB);
+                currentGrid[x][y].setValue(Coordinate.BOMB);
             }
         }
     }
@@ -125,16 +238,17 @@ public class Grid
     /**
      * Print the board to the console.
      */
-    private void printBoard()
+    public void printBoard()
     {
         for(int i = 0; i < gridSize; i++)
         {
             for(int j = 0; j < gridSize; j++)
             {
-                System.out.print(currentBoard[i][j] + " ");
+                System.out.print(currentGrid[i][j].getCoordinateValue() + " ");
             }
             System.out.println();
         }
+        System.out.println();
     }
 
     /**
@@ -147,7 +261,7 @@ public class Grid
         {
             for(int j = 0; j < gridSize; j++)
             {
-                if(currentBoard[i][j].getCoordinateValue() == Coordinate.UNREVEALED)
+                if(currentGrid[i][j].getCoordinateStatus() == Coordinate.Status.UNREVEALED)
                 {
                     return false;
                 }

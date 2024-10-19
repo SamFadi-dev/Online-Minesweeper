@@ -35,7 +35,7 @@ public class Coordinate
      * Set the value of the coordinate.
      * @param value The value of the coordinate.
      */
-    public void setCoordinateValue(char value)
+    public void setValue(char value)
     {
         this.value = value;
     }
@@ -44,7 +44,7 @@ public class Coordinate
      * Set the status of the coordinate.
      * @param status The status of the coordinate.
      */
-    public void setCoordinateStatus(Status status)
+    public void setStatuts(Status status)
     {
         this.status = status;
     }

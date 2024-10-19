@@ -9,19 +9,16 @@ public class MinesweeperServer
     private static final String FLAG_COMMAND = "FLAG";
     private static final String CHEAT_COMMAND = "CHEAT";
     private static final short GRID_SIZE = 7;
-    private static final int INACTIVE_TIME_OUT = 60000;
-    private static final long INPUT_TIME_OUT = 500;
+    private static final int INACTIVE_TIME_OUT = 30000;
 
     public static void main(String[] args) throws IOException
     {
-        Grid grid = new Grid(GRID_SIZE);
-        grid.createInitialBoard();
         try(ServerSocket serverSocket = new ServerSocket(PORT))
         {
             System.out.println("New server socket started on port " + PORT);
             while (true)
             {
-                handleClientConnection(grid, serverSocket);
+                handleClientConnection(serverSocket);
             }
         }
         catch(IOException e)
@@ -36,7 +33,7 @@ public class MinesweeperServer
      * @param serverSocket The server socket.
      * @throws IOException If an I/O error occurs.
      */
-    private static void handleClientConnection(Grid grid, ServerSocket serverSocket)
+    private static void handleClientConnection(ServerSocket serverSocket)
     {
         try
         {
@@ -53,7 +50,7 @@ public class MinesweeperServer
                 return;
             }
             // Process the client's requests (e.g. try, flag, cheat, quit)
-            processClientRequests(grid, clientSocket);
+            processClientRequests(clientSocket);
         } 
         catch(IOException e)
         {
@@ -67,10 +64,12 @@ public class MinesweeperServer
      * @param clientSocket The client socket.
      * @throws IOException If an I/O error occurs.
      */
-    private static void processClientRequests(Grid grid, Socket clientSocket) throws IOException
+    private static void processClientRequests(Socket clientSocket) throws IOException
     {
-        try (OutputStream outputServer = clientSocket.getOutputStream();
-             InputStream inputClient = clientSocket.getInputStream())
+        Grid grid = new Grid(GRID_SIZE);
+        OutputStream outputServer = clientSocket.getOutputStream();
+        InputStream inputClient = clientSocket.getInputStream();
+        try
         {
             // Set the timeout for the client socket
             clientSocket.setSoTimeout(INACTIVE_TIME_OUT);
@@ -80,7 +79,6 @@ public class MinesweeperServer
             // Loop until the client sends a "QUIT" command
             while(true)
             {
-                // Make sure to read the entire message from the client (i.e. read until "\r\n\r\n")
                 int len = inputClient.read(buffer);
                 if(len == -1) break;
                 messageBuilder.append(new String(buffer, 0, len));
@@ -120,6 +118,11 @@ public class MinesweeperServer
                 messageBuilder.setLength(0);
             }
         }
+        catch(SocketTimeoutException e)
+        {
+            System.out.println("Client " + clientSocket.getPort() + " timed out.");
+            clientSocket.close();
+        }
     }
 
     private static boolean isProtocolOK(String receivedMessage)
@@ -151,7 +154,7 @@ public class MinesweeperServer
     private static void handleCheatCommand(Grid grid, OutputStream outputServer)
         throws IOException
     {
-        outputServer.write(grid.convertGridToString().getBytes());
+        outputServer.write(grid.revealAllCells().getBytes());
         outputServer.flush();
     }
     
@@ -165,7 +168,7 @@ public class MinesweeperServer
         // Write the updated grid to the client if the coordinates are valid
         if(areCorrectCoordinates(grid, input))
         {
-            outputServer.write(grid.convertGridToString().getBytes());
+            outputServer.write(grid.convertGridToProtocol(false).getBytes());
             outputServer.flush();
         }
         else
@@ -185,7 +188,9 @@ public class MinesweeperServer
         // Write the updated grid to the client if the coordinates are valid
         if(areCorrectCoordinates(grid, input))
         {
-            outputServer.write(grid.convertGridToString().getBytes());
+            grid.revealCell(getXCoordinate(input), getYCoordinate(input));
+            grid.printBoard();
+            outputServer.write(grid.convertGridToProtocol(false).getBytes());
             outputServer.flush();
         }
         else
@@ -262,14 +267,16 @@ public class MinesweeperServer
         // Divide the input into three parts: the command,
         // the x coordinate, and the y coordinate
         String[] parts = input.split(" ");
-        if (parts.length == 4)
+        final int X = 1;
+        final int Y = 2;
+        if (parts.length == 3)
         {
-            if(!isNumeric(parts[1]) || !isNumeric(parts[2]))
+            if(!isNumeric(parts[X]) || !isNumeric(parts[Y]))
             {
                 return false;
             }
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
+            int x = getXCoordinate(input);
+            int y = getYCoordinate(input);
             if(x < 0 || x >= grid.getBoardSize() || y < 0 || y >= grid.getBoardSize())
             {
                 return false;
@@ -280,6 +287,18 @@ public class MinesweeperServer
             return false;
         }
         return true;
+    }
+
+    private static int getXCoordinate(String input)
+    {
+        String[] parts = input.split(" ");
+        return Integer.parseInt(parts[1]);
+    }
+
+    private static int getYCoordinate(String input)
+    {
+        String[] parts = input.split(" ");
+        return Integer.parseInt(parts[2]);
     }
 
     /**
