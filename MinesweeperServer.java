@@ -8,10 +8,13 @@ public class MinesweeperServer
     private static final String TRY_COMMAND = "TRY";
     private static final String FLAG_COMMAND = "FLAG";
     private static final String CHEAT_COMMAND = "CHEAT";
+    private static final short GRID_SIZE = 7;
+    private static final int INACTIVE_TIME_OUT = 60000;
+    private static final long INPUT_TIME_OUT = 500;
 
     public static void main(String[] args) throws IOException
     {
-        Grid grid = new Grid((short) 7);
+        Grid grid = new Grid(GRID_SIZE);
         grid.createInitialBoard();
         try(ServerSocket serverSocket = new ServerSocket(PORT))
         {
@@ -69,12 +72,27 @@ public class MinesweeperServer
         try (OutputStream outputServer = clientSocket.getOutputStream();
              InputStream inputClient = clientSocket.getInputStream())
         {
-            byte[] msg = new byte[1024];
+            // Set the timeout for the client socket
+            clientSocket.setSoTimeout(INACTIVE_TIME_OUT);
+            byte[] buffer = new byte[1024];
+            StringBuilder messageBuilder = new StringBuilder();
+
             // Loop until the client sends a "QUIT" command
             while(true)
             {
-                int len = inputClient.read(msg);
-                String receivedMessage = new String(msg, 0, len).trim();
+                // Make sure to read the entire message from the client (i.e. read until "\r\n\r\n")
+                int len = inputClient.read(buffer);
+                if(len == -1) break;
+                messageBuilder.append(new String(buffer, 0, len));
+                String receivedMessage = messageBuilder.toString();
+                
+                // Continue until the client sends a complete message
+                if(!isProtocolOK(receivedMessage)) continue;
+
+                // Remove the "\r\n\r\n" from the message
+                receivedMessage = receivedMessage.substring(0, receivedMessage.length() - 8);
+                receivedMessage = receivedMessage.trim();
+
                 if(isQuitCommand(receivedMessage))
                 {
                     handleQuitCommand(clientSocket, outputServer);
@@ -94,10 +112,19 @@ public class MinesweeperServer
                 } 
                 else 
                 {
+                    // Invalid command => send "WRONG" to the client
                     handleWrongCommand(clientSocket, outputServer);
                 }
+
+                // Reset the message builder
+                messageBuilder.setLength(0);
             }
         }
+    }
+
+    private static boolean isProtocolOK(String receivedMessage)
+    {
+        return receivedMessage.endsWith("\\r\\n\\r\\n");
     }
 
     /**
@@ -235,7 +262,7 @@ public class MinesweeperServer
         // Divide the input into three parts: the command,
         // the x coordinate, and the y coordinate
         String[] parts = input.split(" ");
-        if (parts.length == 3)
+        if (parts.length == 4)
         {
             if(!isNumeric(parts[1]) || !isNumeric(parts[2]))
             {
