@@ -4,6 +4,11 @@ public class Grid
     private short numberMines = gridSize;
     private char[][] currentBoard;
 
+    /**
+     * Constructor for the Grid class.
+     * @param gridSize The size of the grid.
+     * @implNote The number of mines is equal to the size of the grid.
+     */
     public Grid(short gridSize)
     {
         this.gridSize = gridSize;
@@ -11,11 +16,19 @@ public class Grid
         createInitialBoard();
     }
 
+    /**
+     * Get the size of the board.
+     * @return The size of the board.
+     */
     public short getBoardSize()
     {
         return gridSize;
     }
 
+    /**
+     * Create the initial board with all cells hidden.
+     * @implNote The board is represented as a 2D array of characters.
+     */
     public void createInitialBoard()
     {
         char[][] board = new char[gridSize][gridSize];
@@ -29,6 +42,10 @@ public class Grid
         currentBoard = board;
     }
 
+    /**
+     * Convert the grid to a string.
+     * @return The grid as a string.
+     */
     public String convertGridToString()
     {
         StringBuilder sb = new StringBuilder();
@@ -43,8 +60,19 @@ public class Grid
         return sb.toString();
     }
 
+    /**
+     * Get the number of mines in the neighborhood of a cell.
+     * @param x The x coordinate of the cell.
+     * @param y The y coordinate of the cell.
+     * @return The number of mines in the neighborhood of the cell.
+     */
     private int getNumberOfAdjacentMines(int x, int y)
     {
+        if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
+        {
+            System.out.println("Invalid coordinates.");
+            return -1;
+        }
         int numMines = 0;
         for(int i = x - 1; i <= x + 1; i++)
         {
@@ -62,6 +90,10 @@ public class Grid
         return numMines;
     }
 
+    /**
+     * Place mines on the board.
+     * @implNote The mines are placed randomly on the board.
+     */
     private void placeMines()
     {
         for(int i = 0; i < numberMines; i++)
@@ -80,6 +112,9 @@ public class Grid
         }
     }
 
+    /**
+     * Print the board to the console.
+     */
     private void printBoard()
     {
         for(int i = 0; i < gridSize; i++)
@@ -92,6 +127,10 @@ public class Grid
         }
     }
 
+    /**
+     * Is the current board a win?
+     * @return True if the current board is a win, false otherwise.
+     */
     private boolean isWin()
     {
         for(int i = 0; i < gridSize; i++)

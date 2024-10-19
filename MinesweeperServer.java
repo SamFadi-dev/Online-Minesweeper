@@ -181,6 +181,7 @@ public class MinesweeperServer
     /**
      * Print a message to the console indicating that the client sent an invalid command.
      * @param clientSocket The client socket that sent the invalid command.
+     * @implNote Debugging purposes only.
      */
     private static void printWrongInputMessage(Socket clientSocket)
     {
@@ -190,6 +191,7 @@ public class MinesweeperServer
     /**
      * Print a message to the console indicating that the client disconnected.
      * @param clientSocket The client socket that disconnected.
+     * @implNote Debugging purposes only.
      */
     private static void printDisconnectedMessage(Socket clientSocket)
     {
