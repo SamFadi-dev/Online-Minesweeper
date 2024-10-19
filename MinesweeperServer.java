@@ -190,7 +190,6 @@ public class MinesweeperServer
         if(areCorrectCoordinates(grid, input))
         {
             grid.revealCell(getXCoordinate(input), getYCoordinate(input));
-            grid.printBoard();
             outputServer.write(grid.convertGridToProtocol(false).getBytes());
             outputServer.flush();
         }

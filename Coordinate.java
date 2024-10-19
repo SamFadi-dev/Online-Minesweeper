@@ -44,7 +44,7 @@ public class Coordinate
      * Set the status of the coordinate.
      * @param status The status of the coordinate.
      */
-    public void setStatuts(Status status)
+    public void setStatus(Status status)
     {
         this.status = status;
     }
@@ -53,7 +53,7 @@ public class Coordinate
      * Get the value of the coordinate.
      * @return The value of the coordinate.
      */
-    public char getCoordinateValue()
+    public char getValue()
     {
         return value;
     }
@@ -62,7 +62,7 @@ public class Coordinate
      * Get the status of the coordinate.
      * @return The status of the coordinate.
      */
-    public Status getCoordinateStatus()
+    public Status getStatus()
     {
         return status;
     }

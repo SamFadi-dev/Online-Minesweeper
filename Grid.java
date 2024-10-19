@@ -56,7 +56,7 @@ public class Grid
         {
             for(int j = 0; j < gridSize; j++)
             {
-                if(currentGrid[i][j].getCoordinateValue() != Coordinate.BOMB)
+                if(currentGrid[i][j].getValue() != Coordinate.BOMB)
                 {
                     currentGrid[i][j].setValue
                         ((char)(getNumberOfAdjacentMines(j, i) + '0'));
@@ -73,14 +73,17 @@ public class Grid
             System.out.println("Invalid coordinates.");
             return;
         }
-        if(currentGrid[x][y].getCoordinateStatus() == Coordinate.Status.FLAGGED)
+        // If the cell is already flagged, unflag it
+        if(currentGrid[x][y].getStatus() == Coordinate.Status.FLAGGED)
         {
-            currentGrid[x][y].setStatuts(Coordinate.Status.UNREVEALED);
+            currentGrid[x][y].setStatus(Coordinate.Status.UNREVEALED);
         }
-        else
+        // If the cell is unrevealed, flag it
+        else if(currentGrid[x][y].getStatus() == Coordinate.Status.UNREVEALED)
         {
-            currentGrid[x][y].setStatuts(Coordinate.Status.FLAGGED);
+            currentGrid[x][y].setStatus(Coordinate.Status.FLAGGED);
         }
+        // If the cell is revealed, do nothing
     }
 
     public void revealCell(int x, int y)
@@ -95,20 +98,20 @@ public class Grid
             placeMines();
             computeFinalGrid();
         }
-        else if(currentGrid[x][y].getCoordinateStatus() == Coordinate.Status.REVEALED)
+        else if(currentGrid[x][y].getStatus() == Coordinate.Status.REVEALED)
         {
             return;
         }
-        else if(currentGrid[x][y].getCoordinateValue() == Coordinate.BOMB)
+        else if(currentGrid[x][y].getValue() == Coordinate.BOMB)
         {
             System.out.println("Game over.");
-            currentGrid[x][y].setStatuts(Coordinate.Status.REVEALED);
+            currentGrid[x][y].setStatus(Coordinate.Status.REVEALED);
             printBoard();
             return;
         }
-        currentGrid[x][y].setStatuts(Coordinate.Status.REVEALED);
+        currentGrid[x][y].setStatus(Coordinate.Status.REVEALED);
         numberTurnsPlayed++;
-        if(currentGrid[x][y].getCoordinateValue() == '0')
+        if(currentGrid[x][y].getValue() == '0')
         {
             propagateReveal(x, y);
         }
@@ -121,18 +124,18 @@ public class Grid
             System.out.println("Invalid coordinates.");
             return;
         }
-        if(currentGrid[x][y].getCoordinateValue() == Coordinate.BOMB)
+        if(currentGrid[x][y].getValue() == Coordinate.BOMB)
         {
             return;
         }
-        if (currentGrid[x][y].getCoordinateStatus() == Coordinate.Status.REVEALED)
+        if (currentGrid[x][y].getStatus() == Coordinate.Status.REVEALED)
         {
             return;
         }
-        currentGrid[x][y].setStatuts(Coordinate.Status.REVEALED);
+        currentGrid[x][y].setStatus(Coordinate.Status.REVEALED);
 
         // If the cell is empty, reveal all adjacent cells
-        if(currentGrid[x][y].getCoordinateValue() == '0')
+        if(currentGrid[x][y].getValue() == '0')
         {
             for(int i = x - 1; i <= x + 1; i++)
             {
@@ -140,7 +143,7 @@ public class Grid
                 {
                     if(i >= 0 && i < gridSize && j >= 0 && j < gridSize)
                     {
-                        if(currentGrid[i][j].getCoordinateStatus() 
+                        if(currentGrid[i][j].getStatus() 
                             == Coordinate.Status.UNREVEALED)
                         {
                             propagateReveal(i, j);
@@ -166,17 +169,17 @@ public class Grid
                 // If we want to force reveal the grid, show all cells (CHEAT)
                 if(forceReveal)
                 {
-                    sb.append(currentGrid[i][j].getCoordinateValue());
+                    sb.append(currentGrid[i][j].getValue());
                 }
                 // If the cell is unrevealed, show the unrevealed character
-                else if(currentGrid[i][j].getCoordinateStatus() == Coordinate.Status.UNREVEALED)
+                else if(currentGrid[i][j].getStatus() == Coordinate.Status.UNREVEALED)
                 {
                     sb.append(Coordinate.UNREVEALED);
                 }
                 // If the cell is revealed, show the value
-                else if(currentGrid[i][j].getCoordinateStatus() == Coordinate.Status.REVEALED)
+                else if(currentGrid[i][j].getStatus() == Coordinate.Status.REVEALED)
                 {
-                    sb.append(currentGrid[i][j].getCoordinateValue());
+                    sb.append(currentGrid[i][j].getValue());
                 }
                 // If the cell is flagged, show the flag character
                 else
@@ -220,7 +223,7 @@ public class Grid
             {
                 if(i >= 0 && i < gridSize && j >= 0 && j < gridSize)
                 {
-                    if(currentGrid[i][j].getCoordinateValue() == Coordinate.BOMB)
+                    if(currentGrid[i][j].getValue() == Coordinate.BOMB)
                     {
                         numMines++;
                     }
@@ -241,7 +244,7 @@ public class Grid
             int x = (int)(Math.random() * gridSize);
             int y = (int)(Math.random() * gridSize);
             // If there is already a mine at this location, try again
-            if(currentGrid[x][y].getCoordinateValue() == Coordinate.BOMB)
+            if(currentGrid[x][y].getValue() == Coordinate.BOMB)
             {
                 i--;
             }
@@ -261,7 +264,7 @@ public class Grid
         {
             for(int j = 0; j < gridSize; j++)
             {
-                System.out.print(currentGrid[i][j].getCoordinateValue() + " ");
+                System.out.print(currentGrid[i][j].getValue() + " ");
             }
             System.out.println();
         }
@@ -272,19 +275,37 @@ public class Grid
      * Is the current board a win?
      * @return True if the current board is a win, false otherwise.
      */
-    private boolean isWin()
+    public boolean isWin()
     {
         for(int i = 0; i < gridSize; i++)
         {
             for(int j = 0; j < gridSize; j++)
             {
-                if(currentGrid[i][j].getCoordinateStatus() == Coordinate.Status.UNREVEALED)
+                if(currentGrid[i][j].getStatus() == Coordinate.Status.UNREVEALED)
                 {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    public boolean isLose()
+    {
+        for(int i = 0; i < gridSize; i++)
+        {
+            for(int j = 0; j < gridSize; j++)
+            {
+                if(currentGrid[i][j].getValue() == Coordinate.BOMB)
+                {
+                    if(currentGrid[i][j].getStatus() == Coordinate.Status.REVEALED)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
 }
