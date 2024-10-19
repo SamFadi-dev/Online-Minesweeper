@@ -168,6 +168,7 @@ public class MinesweeperServer
         // Write the updated grid to the client if the coordinates are valid
         if(areCorrectCoordinates(grid, input))
         {
+            grid.flagCell(getXCoordinate(input), getYCoordinate(input));
             outputServer.write(grid.convertGridToProtocol(false).getBytes());
             outputServer.flush();
         }

@@ -66,6 +66,23 @@ public class Grid
         printBoard();
     }
 
+    public void flagCell(int x, int y)
+    {
+        if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
+        {
+            System.out.println("Invalid coordinates.");
+            return;
+        }
+        if(currentGrid[x][y].getCoordinateStatus() == Coordinate.Status.FLAGGED)
+        {
+            currentGrid[x][y].setStatuts(Coordinate.Status.UNREVEALED);
+        }
+        else
+        {
+            currentGrid[x][y].setStatuts(Coordinate.Status.FLAGGED);
+        }
+    }
+
     public void revealCell(int x, int y)
     {
         if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
