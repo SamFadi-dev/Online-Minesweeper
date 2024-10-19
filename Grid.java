@@ -1,8 +1,11 @@
+import java.util.*;
+
 public class Grid
 {
     private short gridSize = 7;
     private short numberMines = gridSize;
-    private char[][] currentBoard;
+    private short numberTurnsPlayed = 0;
+    private Coordinate[][] currentBoard;
 
     /**
      * Constructor for the Grid class.
@@ -11,8 +14,14 @@ public class Grid
      */
     public Grid(short gridSize)
     {
+        if(gridSize < 1)
+        {
+            System.out.println("Invalid grid size.");
+            return;
+        }
         this.gridSize = gridSize;
         this.numberMines = gridSize;
+        numberTurnsPlayed = 0;
         createInitialBoard();
     }
 
@@ -31,12 +40,13 @@ public class Grid
      */
     public void createInitialBoard()
     {
-        char[][] board = new char[gridSize][gridSize];
+        Coordinate[][] board = new Coordinate[gridSize][gridSize];
         for(int i = 0; i < gridSize; i++)
         {
             for(int j = 0; j < gridSize; j++)
             {
-                board[i][j] = '#';
+                board[i][j] = new Coordinate
+                    (i, j, Coordinate.UNREVEALED, Coordinate.Status.UNREVEALED);
             }
         }
         currentBoard = board;
@@ -53,7 +63,7 @@ public class Grid
         {
             for(int j = 0; j < gridSize; j++)
             {
-                sb.append(currentBoard[i][j]);
+                sb.append(currentBoard[i][j].getCoordinateValue());
             }
             sb.append("\n");
         }
@@ -80,7 +90,7 @@ public class Grid
             {
                 if(i >= 0 && i < gridSize && j >= 0 && j < gridSize)
                 {
-                    if(currentBoard[i][j] == 'B')
+                    if(currentBoard[i][j].getCoordinateValue() == 'B')
                     {
                         numMines++;
                     }
@@ -101,13 +111,13 @@ public class Grid
             int x = (int)(Math.random() * gridSize);
             int y = (int)(Math.random() * gridSize);
             // If there is already a mine at this location, try again
-            if(currentBoard[x][y] == 'B')
+            if(currentBoard[x][y].getCoordinateValue() == 'B')
             {
                 i--;
             }
             else
             {
-                currentBoard[x][y] = 'B';
+                currentBoard[x][y].setCoordinateValue(Coordinate.BOMB);
             }
         }
     }
@@ -137,7 +147,7 @@ public class Grid
         {
             for(int j = 0; j < gridSize; j++)
             {
-                if(currentBoard[i][j] == '#')
+                if(currentBoard[i][j].getCoordinateValue() == Coordinate.UNREVEALED)
                 {
                     return false;
                 }

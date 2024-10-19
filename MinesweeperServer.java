@@ -21,6 +21,10 @@ public class MinesweeperServer
                 handleClientConnection(grid, serverSocket);
             }
         }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     /**
