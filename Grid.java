@@ -49,6 +49,10 @@ public class Grid
         currentGrid = board;
     }
 
+    /**
+     * Compute the final grid with the number of mines in the neighborhood of each cell.
+     * @implNote The final grid is computed after the first move.
+     */
     public void computeFinalGrid()
     {
         for(int i = 0; i < gridSize; i++)
@@ -65,6 +69,12 @@ public class Grid
         printBoard();
     }
 
+    /**
+     * Flag a cell on the board.
+     * @param x The x coordinate of the cell.
+     * @param y The y coordinate of the cell.
+     * @implNote Used for the FLAG command.
+     */
     public void flagCell(int x, int y)
     {
         if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
@@ -85,6 +95,12 @@ public class Grid
         // If the cell is revealed, do nothing
     }
 
+    /**
+     * Reveal a cell on the board.
+     * @param x The x coordinate of the cell.
+     * @param y The y coordinate of the cell.
+     * @implNote Used for the TRY command.
+     */
     public void revealCell(int x, int y)
     {
         if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
@@ -116,6 +132,12 @@ public class Grid
         propagateReveal(x, y);
     }
 
+    /**
+     * Propagate the reveal operation to all adjacent cells.
+     * @param x The x coordinate of the cell.
+     * @param y The y coordinate of the cell.
+     * @implNote Used after revealing an empty cell.
+     */
     private void propagateReveal(int x, int y)
     {
         if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
@@ -191,6 +213,10 @@ public class Grid
         return sb.toString();
     }
 
+    /**
+     * Reveal all cells on the board. (CHEAT)
+     * @return The grid as a string (following the protocol).
+     */
     public String revealAllCells()
     {
         if(numberTurnsPlayed == 0)
@@ -286,6 +312,10 @@ public class Grid
         return true;
     }
 
+    /**
+     * Is the current board a loss?
+     * @return True if the current board is a loss, false otherwise.
+     */
     public boolean isLose()
     {
         for(int i = 0; i < gridSize; i++)

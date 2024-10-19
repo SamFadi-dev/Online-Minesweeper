@@ -130,6 +130,11 @@ public class MinesweeperServer
         }
     }
 
+    /**
+     * Check if the protocol is correct.
+     * @param receivedMessage The message received from the client.
+     * @return True if the protocol is correct, false otherwise.
+     */
     private static boolean isProtocolOK(String receivedMessage)
     {
         return receivedMessage.endsWith("\\r\\n\\r\\n");
@@ -308,12 +313,24 @@ public class MinesweeperServer
         return true;
     }
 
+    /**
+     * Get the x coordinate from the input.
+     * @param input The input from the client.
+     * @return The x coordinate.
+     * @implNote The string must be in the format "TRY x y".
+     */
     private static int getXCoordinate(String input)
     {
         String[] parts = input.split(" ");
         return Integer.parseInt(parts[1]);
     }
 
+    /**
+     * Get the y coordinate from the input.
+     * @param input The input from the client.
+     * @return The y coordinate.
+     * @implNote The string must be in the format "TRY x y".
+     */
     private static int getYCoordinate(String input)
     {
         String[] parts = input.split(" ");
