@@ -4,9 +4,6 @@ import java.net.*;
 public class MinesweeperServer
 {
     public static final short PORT = 2377;
-    private static final short BOARD_SIZE = 7;
-    private static final short NUM_MINES = BOARD_SIZE;
-    private char[][] currentBoard;
     private static final String QUIT_COMMAND = "QUIT";
     private static final String TRY_COMMAND = "TRY";
     private static final String FLAG_COMMAND = "FLAG";
@@ -14,14 +11,14 @@ public class MinesweeperServer
 
     public static void main(String[] args) throws IOException
     {
-        MinesweeperServer server = new MinesweeperServer();
-        server.createInitialBoard();
+        Grid grid = new Grid((short) 7);
+        grid.createInitialBoard();
         try(ServerSocket serverSocket = new ServerSocket(PORT))
         {
             System.out.println("New server socket started on port " + PORT);
             while (true)
             {
-                handleClientConnection(server, serverSocket);
+                handleClientConnection(grid, serverSocket);
             }
         }
     }
@@ -32,7 +29,7 @@ public class MinesweeperServer
      * @param serverSocket The server socket.
      * @throws IOException If an I/O error occurs.
      */
-    private static void handleClientConnection(MinesweeperServer server, ServerSocket serverSocket)
+    private static void handleClientConnection(Grid grid, ServerSocket serverSocket)
     {
         try
         {
@@ -49,7 +46,7 @@ public class MinesweeperServer
                 return;
             }
             // Process the client's requests (e.g. try, flag, cheat, quit)
-            processClientRequests(server, clientSocket);
+            processClientRequests(grid, clientSocket);
         } 
         catch(IOException e)
         {
@@ -63,7 +60,7 @@ public class MinesweeperServer
      * @param clientSocket The client socket.
      * @throws IOException If an I/O error occurs.
      */
-    private static void processClientRequests(MinesweeperServer server, Socket clientSocket) throws IOException
+    private static void processClientRequests(Grid grid, Socket clientSocket) throws IOException
     {
         try (OutputStream outputServer = clientSocket.getOutputStream();
              InputStream inputClient = clientSocket.getInputStream())
@@ -81,15 +78,15 @@ public class MinesweeperServer
                 } 
                 else if(isCheatCommand(receivedMessage))
                 {
-                    handleCheatCommand(server, outputServer);
+                    handleCheatCommand(grid, outputServer);
                 } 
                 else if(isFlagCommand(receivedMessage))
                 {
-                    handleFlagCommand(outputServer, receivedMessage);
+                    handleFlagCommand(outputServer, receivedMessage, grid);
                 } 
                 else if(isTryCommand(receivedMessage))
                 {
-                    handleTryCommand(outputServer, receivedMessage);
+                    handleTryCommand(outputServer, receivedMessage, grid);
                 } 
                 else 
                 {
@@ -120,10 +117,10 @@ public class MinesweeperServer
      * @param outputServer The output stream to the client.
      * @throws IOException If an I/O error occurs.
      */
-    private static void handleCheatCommand(MinesweeperServer server, OutputStream outputServer)
+    private static void handleCheatCommand(Grid grid, OutputStream outputServer)
         throws IOException
     {
-        outputServer.write(server.convertBoardToString().getBytes());
+        outputServer.write(grid.convertGridToString().getBytes());
         outputServer.flush();
     }
     
@@ -132,12 +129,12 @@ public class MinesweeperServer
      * @param outputServer The output stream to the client.
      * @throws IOException If an I/O error occurs.
      */
-    private static void handleFlagCommand(OutputStream outputServer, String input) throws IOException
+    private static void handleFlagCommand(OutputStream outputServer, String input, Grid grid) throws IOException
     {
         // Write the updated grid to the client if the coordinates are valid
-        if(areCorrectCoordinates(input))
+        if(areCorrectCoordinates(grid, input))
         {
-            outputServer.write("FLAG".getBytes());
+            outputServer.write(grid.convertGridToString().getBytes());
             outputServer.flush();
         }
         else
@@ -152,12 +149,12 @@ public class MinesweeperServer
      * @param outputServer The output stream to the client.
      * @throws IOException If an I/O error occurs.
      */
-    private static void handleTryCommand(OutputStream outputServer, String input) throws IOException
+    private static void handleTryCommand(OutputStream outputServer, String input, Grid grid) throws IOException
     {
         // Write the updated grid to the client if the coordinates are valid
-        if(areCorrectCoordinates(input))
+        if(areCorrectCoordinates(grid, input))
         {
-            outputServer.write("TRY".getBytes());
+            outputServer.write(grid.convertGridToString().getBytes());
             outputServer.flush();
         }
         else
@@ -227,7 +224,7 @@ public class MinesweeperServer
      * @param outputServer The output stream to the client.
      * @return True if the input is a valid command, false otherwise.
      */
-    private static boolean areCorrectCoordinates(String input)
+    private static boolean areCorrectCoordinates(Grid grid, String input)
     {
         // Divide the input into three parts: the command,
         // the x coordinate, and the y coordinate
@@ -240,7 +237,7 @@ public class MinesweeperServer
             }
             int x = Integer.parseInt(parts[1]);
             int y = Integer.parseInt(parts[2]);
-            if(x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE)
+            if(x < 0 || x >= grid.getBoardSize() || y < 0 || y >= grid.getBoardSize())
             {
                 return false;
             }  
@@ -287,96 +284,5 @@ public class MinesweeperServer
     private static boolean isCheatCommand(String input)
     {
         return input.equals(CHEAT_COMMAND);
-    }
-
-    private void createInitialBoard()
-    {
-        char[][] board = new char[BOARD_SIZE][BOARD_SIZE];
-        for(int i = 0; i < BOARD_SIZE; i++)
-        {
-            for(int j = 0; j < BOARD_SIZE; j++)
-            {
-                board[i][j] = '#';
-            }
-        }
-        currentBoard = board;
-    }
-
-    private String convertBoardToString()
-    {
-        StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < BOARD_SIZE; i++)
-        {
-            for(int j = 0; j < BOARD_SIZE; j++)
-            {
-                sb.append(currentBoard[i][j]);
-            }
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
-
-    private int getNumberOfAdjacentMines(int x, int y)
-    {
-        int numMines = 0;
-        for(int i = x - 1; i <= x + 1; i++)
-        {
-            for(int j = y - 1; j <= y + 1; j++)
-            {
-                if(i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE)
-                {
-                    if(currentBoard[i][j] == 'B')
-                    {
-                        numMines++;
-                    }
-                }
-            }
-        }
-        return numMines;
-    }
-
-    private void placeMines()
-    {
-        for(int i = 0; i < NUM_MINES; i++)
-        {
-            int x = (int)(Math.random() * BOARD_SIZE);
-            int y = (int)(Math.random() * BOARD_SIZE);
-            // If there is already a mine at this location, try again
-            if(currentBoard[x][y] == 'B')
-            {
-                i--;
-            }
-            else
-            {
-                currentBoard[x][y] = 'B';
-            }
-        }
-    }
-
-    private void printBoard()
-    {
-        for(int i = 0; i < BOARD_SIZE; i++)
-        {
-            for(int j = 0; j < BOARD_SIZE; j++)
-            {
-                System.out.print(currentBoard[i][j] + " ");
-            }
-            System.out.println();
-        }
-    }
-
-    private boolean isWin()
-    {
-        for(int i = 0; i < BOARD_SIZE; i++)
-        {
-            for(int j = 0; j < BOARD_SIZE; j++)
-            {
-                if(currentBoard[i][j] == '#')
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }
