@@ -106,7 +106,12 @@ public class MinesweeperServer
                 } 
                 else if(isTryCommand(receivedMessage))
                 {
-                    handleTryCommand(outputServer, receivedMessage, grid);
+                    boolean isOver = handleTryCommand(outputServer, receivedMessage, grid);
+                    if(isOver)
+                    {
+                        handleQuitCommand(clientSocket, outputServer);
+                        break;
+                    }
                 } 
                 else 
                 {
@@ -184,19 +189,33 @@ public class MinesweeperServer
      * @param outputServer The output stream to the client.
      * @throws IOException If an I/O error occurs.
      */
-    private static void handleTryCommand(OutputStream outputServer, String input, Grid grid) throws IOException
+    private static boolean handleTryCommand(OutputStream outputServer, String input, Grid grid) throws IOException
     {
         // Write the updated grid to the client if the coordinates are valid
         if(areCorrectCoordinates(grid, input))
         {
             grid.revealCell(getXCoordinate(input), getYCoordinate(input));
+            if(grid.isWin())
+            {
+                outputServer.write("YOU WIN".getBytes());
+                outputServer.flush();
+                return true;
+            }
+            else if(grid.isLose())
+            {
+                outputServer.write("YOU LOSE".getBytes());
+                outputServer.flush();
+                return true;
+            }
             outputServer.write(grid.convertGridToProtocol(false).getBytes());
             outputServer.flush();
+            return false;
         }
         else
         {
             outputServer.write("INVALID RANGE".getBytes());
             outputServer.flush();
+            return false;
         }
     }
     

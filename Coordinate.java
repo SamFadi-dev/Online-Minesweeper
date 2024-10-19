@@ -1,7 +1,6 @@
 public class Coordinate
 {
     public static final char BOMB = 'B';
-    public static final char EMPTY = 'E';
     public static final char FLAG = 'F';
     public static final char UNREVEALED = '#';
 
@@ -11,24 +10,17 @@ public class Coordinate
      * coordinate or not to the client.
      */
     public enum Status{ UNREVEALED, REVEALED, FLAGGED }
-    private int x;
-    private int y;
     private char value;
     private Status status;
 
     /**
      * Constructor for the Coordinate class.
-     * @param x The x coordinate of the cell.
-     * @param y The y coordinate of the cell.
-     * @param value The value of the cell.
-     * @param status The status of the cell.
+     * @implNote Initializes the coordinate with an unrevealed status.
      */
-    public Coordinate(int x, int y, char value, Status status)
+    public Coordinate()
     {
-        this.x = x;
-        this.y = y;
-        this.value = value;
-        this.status = status;
+        this.value = UNREVEALED;
+        this.status = Status.UNREVEALED;
     }
 
     /**

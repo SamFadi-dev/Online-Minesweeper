@@ -43,8 +43,7 @@ public class Grid
         {
             for(int j = 0; j < gridSize; j++)
             {
-                board[i][j] = new Coordinate
-                    (i, j, Coordinate.UNREVEALED, Coordinate.Status.UNREVEALED);
+                board[i][j] = new Coordinate();
             }
         }
         currentGrid = board;
@@ -59,7 +58,7 @@ public class Grid
                 if(currentGrid[i][j].getValue() != Coordinate.BOMB)
                 {
                     currentGrid[i][j].setValue
-                        ((char)(getNumberOfAdjacentMines(j, i) + '0'));
+                        ((char)(getNumberOfAdjacentMines(i, j) + '0'));
                 }
             }
         }
@@ -93,15 +92,18 @@ public class Grid
             System.out.println("Invalid coordinates.");
             return;
         }
+        // If this is the first turn, place mines and compute the final grid
         if(numberTurnsPlayed == 0)
         {
-            placeMines();
+            placeMines(x, y);
             computeFinalGrid();
         }
+        // If the cell is already revealed, do nothing
         else if(currentGrid[x][y].getStatus() == Coordinate.Status.REVEALED)
         {
             return;
         }
+        // If the cell is a bomb, game over
         else if(currentGrid[x][y].getValue() == Coordinate.BOMB)
         {
             System.out.println("Game over.");
@@ -109,12 +111,9 @@ public class Grid
             printBoard();
             return;
         }
-        currentGrid[x][y].setStatus(Coordinate.Status.REVEALED);
         numberTurnsPlayed++;
-        if(currentGrid[x][y].getValue() == '0')
-        {
-            propagateReveal(x, y);
-        }
+        // If the cell is empty, reveal all adjacent cells
+        propagateReveal(x, y);
     }
 
     private void propagateReveal(int x, int y)
@@ -133,7 +132,6 @@ public class Grid
             return;
         }
         currentGrid[x][y].setStatus(Coordinate.Status.REVEALED);
-
         // If the cell is empty, reveal all adjacent cells
         if(currentGrid[x][y].getValue() == '0')
         {
@@ -143,8 +141,7 @@ public class Grid
                 {
                     if(i >= 0 && i < gridSize && j >= 0 && j < gridSize)
                     {
-                        if(currentGrid[i][j].getStatus() 
-                            == Coordinate.Status.UNREVEALED)
+                        if(i != x || j != y)
                         {
                             propagateReveal(i, j);
                         }
@@ -211,11 +208,6 @@ public class Grid
      */
     private int getNumberOfAdjacentMines(int x, int y)
     {
-        if(x < 0 || x >= gridSize || y < 0 || y >= gridSize)
-        {
-            System.out.println("Invalid coordinates.");
-            return -1;
-        }
         int numMines = 0;
         for(int i = x - 1; i <= x + 1; i++)
         {
@@ -223,6 +215,10 @@ public class Grid
             {
                 if(i >= 0 && i < gridSize && j >= 0 && j < gridSize)
                 {
+                    if(i == x && j == y)
+                    {
+                        continue;
+                    }
                     if(currentGrid[i][j].getValue() == Coordinate.BOMB)
                     {
                         numMines++;
@@ -237,14 +233,14 @@ public class Grid
      * Place mines on the board.
      * @implNote The mines are placed randomly on the board.
      */
-    private void placeMines()
+    private void placeMines(int xAvoid, int yAvoid)
     {
         for(int i = 0; i < numberMines; i++)
         {
             int x = (int)(Math.random() * gridSize);
             int y = (int)(Math.random() * gridSize);
             // If there is already a mine at this location, try again
-            if(currentGrid[x][y].getValue() == Coordinate.BOMB)
+            if(currentGrid[x][y].getValue() == Coordinate.BOMB || (x == xAvoid && y == yAvoid))
             {
                 i--;
             }
