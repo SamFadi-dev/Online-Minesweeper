@@ -27,6 +27,8 @@ public class MinesweeperServer
         }
     }
 
+
+
     /**
      * Handle the connection between the server and the client.
      * @param server The MinesweeperServer object.
@@ -49,8 +51,9 @@ public class MinesweeperServer
                 clientSocket.close();
                 return;
             }
-            // Process the client's requests (e.g. try, flag, cheat, quit)
-            processClientRequests(clientSocket);
+            // Create a new worker thread for the client to process the client's requests
+            Worker worker = new Worker(clientSocket);
+            worker.start();
         } 
         catch(IOException e)
         {
@@ -64,7 +67,7 @@ public class MinesweeperServer
      * @param clientSocket The client socket.
      * @throws IOException If an I/O error occurs.
      */
-    private static void processClientRequests(Socket clientSocket) throws IOException
+    public static void processClientRequests(Socket clientSocket) throws IOException
     {
         Grid grid = new Grid(GRID_SIZE);
         OutputStream outputServer = clientSocket.getOutputStream();
