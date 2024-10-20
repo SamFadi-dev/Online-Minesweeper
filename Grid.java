@@ -121,7 +121,6 @@ public class Grid
         // If the cell is a bomb, game over
         else if(currentGrid[x][y].getValue() == Coordinate.BOMB)
         {
-            System.out.println("Game over.");
             currentGrid[x][y].setStatus(Coordinate.Status.REVEALED);
             return;
         }
@@ -207,6 +206,14 @@ public class Grid
             sb.append("\\r\\n");
             sb.append("\n");
         }
+        if(isWin())
+        {
+            sb.append("GAME WON");
+        }
+        else if(isLose())
+        {
+            sb.append("GAME LOST");
+        }
         sb.append("\\r\\n");
         return sb.toString();
     }
@@ -214,6 +221,7 @@ public class Grid
     /**
      * Reveal all cells on the board. (CHEAT)
      * @return The grid as a string (following the protocol).
+     * @implNote This method does not set the current grid.
      */
     public String revealAllCells()
     {
@@ -297,17 +305,28 @@ public class Grid
      */
     public boolean isWin()
     {
+        int numUnrevealed = 0;
         for(int i = 0; i < gridSize; i++)
         {
             for(int j = 0; j < gridSize; j++)
             {
-                if(currentGrid[i][j].getStatus() == Coordinate.Status.UNREVEALED)
+                if(currentGrid[i][j].getStatus() 
+                    == Coordinate.Status.UNREVEALED)
                 {
-                    return false;
+                    numUnrevealed++;
                 }
             }
         }
-        return true;
+
+        // If the number of unrevealed cells is equal to the number of mines, the game is won
+        if(numUnrevealed == numberMines)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**

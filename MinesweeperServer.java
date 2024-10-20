@@ -113,6 +113,8 @@ public class MinesweeperServer
                     boolean isOver = handleTryCommand(outputServer, receivedMessage, grid);
                     if(isOver)
                     {
+                        System.out.println("Game over for client " 
+                            + clientSocket.getPort() + " => disconnecting.");
                         clientSocket.close();
                         break;
                     }
@@ -200,32 +202,33 @@ public class MinesweeperServer
      */
     private static boolean handleTryCommand(OutputStream outputServer, String input, Grid grid) throws IOException
     {
+        boolean isOver = false;
         // Write the updated grid to the client if the coordinates are valid
         if(areCorrectCoordinates(grid, input))
         {
             grid.revealCell(getXCoordinate(input), getYCoordinate(input));
-            if(grid.isWin())
+            // Check if the game is over
+            if(grid.isWin() || grid.isLose())
             {
-                outputServer.write("YOU WIN\\r\\n".getBytes());
-                outputServer.flush();
-                return true;
+                isOver = true;
             }
-            else if(grid.isLose())
+            else
             {
-                outputServer.write("YOU LOSE\\r\\n".getBytes());
-                outputServer.flush();
-                return true;
+                isOver = false;
             }
+
+            // Send the updated grid to the client
             outputServer.write(grid.convertGridToProtocol(false).getBytes());
             outputServer.flush();
-            return false;
         }
         else
         {
-            outputServer.write("INVALID RANGE".getBytes());
+            // Client sent invalid coordinates
+            outputServer.write("INVALID RANGE\\r\\n".getBytes());
             outputServer.flush();
-            return false;
+            isOver = false;
         }
+        return isOver;
     }
     
     /**
