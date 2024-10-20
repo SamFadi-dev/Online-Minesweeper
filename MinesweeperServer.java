@@ -106,10 +106,11 @@ public class MinesweeperServer
                 } 
                 else if(isTryCommand(receivedMessage))
                 {
+                    // Check if the game is over while processing the TRY command
                     boolean isOver = handleTryCommand(outputServer, receivedMessage, grid);
                     if(isOver)
                     {
-                        handleQuitCommand(clientSocket, outputServer);
+                        clientSocket.close();
                         break;
                     }
                 } 
@@ -184,7 +185,7 @@ public class MinesweeperServer
         }
         else
         {
-            outputServer.write("INVALID RANGE".getBytes());
+            outputServer.write("INVALID RANGE\\r\\n".getBytes());
             outputServer.flush();
         }
     }
@@ -202,13 +203,13 @@ public class MinesweeperServer
             grid.revealCell(getXCoordinate(input), getYCoordinate(input));
             if(grid.isWin())
             {
-                outputServer.write("YOU WIN".getBytes());
+                outputServer.write("YOU WIN\\r\\n".getBytes());
                 outputServer.flush();
                 return true;
             }
             else if(grid.isLose())
             {
-                outputServer.write("YOU LOSE".getBytes());
+                outputServer.write("YOU LOSE\\r\\n".getBytes());
                 outputServer.flush();
                 return true;
             }

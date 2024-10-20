@@ -35,7 +35,7 @@ public class MinesweeperClient
         }
         catch(IOException e)
         {
-            System.out.println("I/O error.");
+            System.out.println("I/O error. Probably timeout and/or disconnected.");
         }
     }
 }

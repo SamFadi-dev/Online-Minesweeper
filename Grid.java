@@ -66,7 +66,6 @@ public class Grid
                 }
             }
         }
-        printBoard();
     }
 
     /**
@@ -124,7 +123,6 @@ public class Grid
         {
             System.out.println("Game over.");
             currentGrid[x][y].setStatus(Coordinate.Status.REVEALED);
-            printBoard();
             return;
         }
         numberTurnsPlayed++;
