@@ -1,6 +1,9 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Minesweeper client.
+ */
 public class MinesweeperClient
 {
     public static void main(String[] args) throws IOException
@@ -19,14 +22,22 @@ public class MinesweeperClient
 
             while(true)
             {
+                // Send the user input to the server.
                 String userInput = keyboardReader.readLine();
                 outputClient.write(userInput.getBytes());
-                String receivedMessage = new String(msg, 0, inputServer.read(msg)).trim();
-                if(receivedMessage.equals("GOODBYE")) break;
-                System.out.println(receivedMessage);
                 outputClient.flush();
+
+                // Receive the server's response.
+                String receivedMessage = new String(msg, 0, inputServer.read(msg)).trim();
+
+                // Exit the client if the server sends "GOODBYE" or "GAME" (GAME LOST/WON). 
+                if(receivedMessage.contains("GOODBYE") || receivedMessage.contains("GAME"))
+                {
+                    System.out.println(receivedMessage);
+                    break;
+                }
+                System.out.println(receivedMessage);
             }
-            System.out.println("Disconnected from server.");
             clientSocket.close();
         }
         catch(UnknownHostException e)

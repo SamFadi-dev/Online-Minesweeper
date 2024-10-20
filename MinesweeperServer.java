@@ -1,6 +1,9 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * MinesweeperServer class for the Minesweeper game.
+ */
 public class MinesweeperServer
 {
     public static final short PORT = 2377;
@@ -9,8 +12,13 @@ public class MinesweeperServer
     private static final String FLAG_COMMAND = "FLAG";
     private static final String CHEAT_COMMAND = "CHEAT";
     private static final short GRID_SIZE = 7;
-    private static final int INACTIVE_TIME_OUT = 30000;
+    private static final int INACTIVE_TIME_OUT = 60000;
 
+    /**
+     * Main method for the MinesweeperServer class.
+     * @param args The command line arguments.
+     * @throws IOException If an I/O error occurs.
+     */
     public static void main(String[] args) throws IOException
     {
         try(ServerSocket serverSocket = new ServerSocket(PORT))
@@ -26,8 +34,6 @@ public class MinesweeperServer
             e.printStackTrace();
         }
     }
-
-
 
     /**
      * Handle the connection between the server and the client.
