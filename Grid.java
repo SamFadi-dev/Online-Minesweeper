@@ -203,8 +203,7 @@ public class Grid
                     sb.append(Coordinate.FLAG);
                 }
             }
-            sb.append("\\r\\n");
-            sb.append("\n");
+            sb.append("\r\n");
         }
         if(isWin())
         {
@@ -214,7 +213,8 @@ public class Grid
         {
             sb.append("GAME LOST");
         }
-        sb.append("\\r\\n");
+
+        sb.append("\r\n");
         return sb.toString();
     }
 
@@ -227,7 +227,7 @@ public class Grid
     {
         if(numberTurnsPlayed == 0)
         {
-            return new String("GAME NOT STARTED\\r\\n");
+            return new String("GAME NOT STARTED\r\n");
         }
         return convertGridToProtocol(true);
     }

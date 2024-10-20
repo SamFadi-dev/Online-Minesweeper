@@ -14,6 +14,11 @@ public class MinesweeperClient
             if(clientSocket.isConnected())
             {
                 System.out.println("Connected to server.");
+                System.out.println("List Of Commands: \n"
+                    + "1. FLAG x y\n"
+                    + "2. TRY x y\n"
+                    + "3. CHEAT\n"
+                    + "4. QUIT\n");
             }
             InputStream inputServer = clientSocket.getInputStream();
             OutputStream outputClient = clientSocket.getOutputStream();
@@ -24,19 +29,21 @@ public class MinesweeperClient
             {
                 // Send the user input to the server.
                 String userInput = keyboardReader.readLine();
+                userInput = userInput.concat("\r\n\r\n");
                 outputClient.write(userInput.getBytes());
                 outputClient.flush();
 
                 // Receive the server's response.
                 String receivedMessage = new String(msg, 0, inputServer.read(msg)).trim();
 
-                // Exit the client if the server sends "GOODBYE" or "GAME" (GAME LOST/WON). 
-                if(receivedMessage.contains("GOODBYE") || receivedMessage.contains("GAME"))
+                // Exit the client if the server sends "GOODBYE" or GAME LOST/WON. 
+                if(receivedMessage.contains("GOODBYE") || receivedMessage.contains("GAME LOST") 
+                    || receivedMessage.contains("GAME WON"))
                 {
                     System.out.println(receivedMessage);
                     break;
                 }
-                System.out.println(receivedMessage);
+                System.out.println(receivedMessage + "\n");
             }
             clientSocket.close();
         }

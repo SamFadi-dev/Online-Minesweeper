@@ -95,9 +95,6 @@ public class MinesweeperServer
                 
                 // Continue until the client sends a complete message
                 if(!isProtocolOK(receivedMessage)) continue;
-
-                // Remove the "\r\n\r\n" from the message
-                receivedMessage = receivedMessage.substring(0, receivedMessage.length() - 8);
                 receivedMessage = receivedMessage.trim();
 
                 if(isQuitCommand(receivedMessage))
@@ -149,7 +146,7 @@ public class MinesweeperServer
      */
     private static boolean isProtocolOK(String receivedMessage)
     {
-        return receivedMessage.endsWith("\\r\\n\\r\\n");
+        return receivedMessage.endsWith("\r\n\r\n");
     }
 
     /**
@@ -162,7 +159,7 @@ public class MinesweeperServer
         throws IOException
     {
         printDisconnectedMessage(clientSocket);
-        outputServer.write("GOODBYE".getBytes());
+        outputServer.write("GOODBYE\r\n".getBytes());
         outputServer.flush();
         clientSocket.close();
     }
@@ -196,7 +193,7 @@ public class MinesweeperServer
         }
         else
         {
-            outputServer.write("INVALID RANGE\\r\\n".getBytes());
+            outputServer.write("INVALID RANGE\r\n".getBytes());
             outputServer.flush();
         }
     }
@@ -230,7 +227,7 @@ public class MinesweeperServer
         else
         {
             // Client sent invalid coordinates
-            outputServer.write("INVALID RANGE\\r\\n".getBytes());
+            outputServer.write("INVALID RANGE\r\n".getBytes());
             outputServer.flush();
             isOver = false;
         }
@@ -246,7 +243,7 @@ public class MinesweeperServer
     private static void handleWrongCommand(Socket clientSocket, OutputStream outputServer) 
         throws IOException
     {
-        outputServer.write("WRONG".getBytes());
+        outputServer.write("WRONG\r\n".getBytes());
         outputServer.flush();
         printWrongInputMessage(clientSocket);
     }
@@ -314,6 +311,7 @@ public class MinesweeperServer
             }
             int x = getXCoordinate(input);
             int y = getYCoordinate(input);
+            // Check if the coordinates are within the grid
             if(x < 0 || x >= grid.getBoardSize() || y < 0 || y >= grid.getBoardSize())
             {
                 return false;
