@@ -6,7 +6,8 @@ import java.net.*;
  */
 public class MinesweeperServer
 {
-    public static final short PORT = 2377;
+    public static final short MSG_SIZE = 1024;
+    public static final short SERVER_PORT = 2377;
     private static final String QUIT_COMMAND = "QUIT";
     private static final String TRY_COMMAND = "TRY";
     private static final String FLAG_COMMAND = "FLAG";
@@ -21,9 +22,9 @@ public class MinesweeperServer
      */
     public static void main(String[] args) throws IOException
     {
-        try(ServerSocket serverSocket = new ServerSocket(PORT))
+        try(ServerSocket serverSocket = new ServerSocket(SERVER_PORT))
         {
-            System.out.println("New server socket started on port " + PORT);
+            System.out.println("New server socket started on port " + SERVER_PORT);
             while (true)
             {
                 handleClientConnection(serverSocket);
@@ -82,7 +83,7 @@ public class MinesweeperServer
         {
             // Set the timeout for the client socket
             clientSocket.setSoTimeout(INACTIVE_TIME_OUT);
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[MSG_SIZE];
             StringBuilder messageBuilder = new StringBuilder();
 
             // Loop until the client sends a "QUIT" command

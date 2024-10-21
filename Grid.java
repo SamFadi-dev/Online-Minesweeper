@@ -271,8 +271,9 @@ public class Grid
         {
             int x = (int)(Math.random() * gridSize);
             int y = (int)(Math.random() * gridSize);
-            // If there is already a mine at this location, try again
-            if(currentGrid[x][y].getValue() == Coordinate.BOMB || (x == xAvoid && y == yAvoid))
+            // If there is already a mine at this location or coordinate to avoid, try again
+            if(currentGrid[x][y].getValue() == Coordinate.BOMB 
+                || (x == xAvoid && y == yAvoid))
             {
                 i--;
             }
@@ -285,6 +286,7 @@ public class Grid
 
     /**
      * Print the board to the console.
+     * @implNote Used for debugging.
      */
     public void printBoard()
     {
@@ -305,11 +307,12 @@ public class Grid
      */
     public boolean isWin()
     {
-        int numUnrevealed = 0;
+        short numUnrevealed = 0;
         for(int i = 0; i < gridSize; i++)
         {
             for(int j = 0; j < gridSize; j++)
             {
+                // Count the number of unrevealed cells
                 if(currentGrid[i][j].getStatus() 
                     == Coordinate.Status.UNREVEALED)
                 {
@@ -319,14 +322,7 @@ public class Grid
         }
 
         // If the number of unrevealed cells is equal to the number of mines, the game is won
-        if(numUnrevealed == numberMines)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return numUnrevealed == numberMines;
     }
 
     /**
@@ -341,7 +337,9 @@ public class Grid
             {
                 if(currentGrid[i][j].getValue() == Coordinate.BOMB)
                 {
-                    if(currentGrid[i][j].getStatus() == Coordinate.Status.REVEALED)
+                    // If a bomb is revealed, the game is lost
+                    if(currentGrid[i][j].getStatus() 
+                        == Coordinate.Status.REVEALED)
                     {
                         return true;
                     }
