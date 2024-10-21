@@ -1,9 +1,6 @@
 import java.io.*;
 import java.net.*;
 
-/**
- * Minesweeper client.
- */
 public class MinesweeperClient
 {
     public static void main(String[] args) throws IOException

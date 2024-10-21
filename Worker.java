@@ -1,9 +1,6 @@
 import java.io.*;
 import java.net.*;
 
-/**
- * Worker class for MinesweeperServer.
- */
 class Worker extends Thread
 {
     Socket clientSocket;

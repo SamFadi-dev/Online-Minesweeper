@@ -36,7 +36,7 @@ public class Grid
      * Create the initial board with all cells hidden.
      * @implNote The board is represented as a 2D array of characters.
      */
-    public void createInitialBoard()
+    private void createInitialBoard()
     {
         Coordinate[][] board = new Coordinate[gridSize][gridSize];
         for(int i = 0; i < gridSize; i++)

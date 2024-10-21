@@ -1,9 +1,6 @@
 import java.io.*;
 import java.net.*;
 
-/**
- * MinesweeperServer class for the Minesweeper game.
- */
 public class MinesweeperServer
 {
     public static final short MSG_SIZE = 1024;
