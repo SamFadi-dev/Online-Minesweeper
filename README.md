@@ -41,7 +41,10 @@ The client component allows players to:
 
 ### Client
 1. Compile the client code:
+    ```sh
     javac MinesweeperClient.java
 
 2. Run the client:
+    ```sh
     java MinesweeperClient
+
