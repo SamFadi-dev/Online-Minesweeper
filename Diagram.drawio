@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="MAHr5kk7nUPrVwBGJ5mV" name="Page-1">
-        <mxGraphModel dx="1278" dy="767" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+        <mxGraphModel dx="703" dy="387" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -103,7 +103,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="58" value="MinesweeperServer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="190" y="280" width="444" height="596" as="geometry"/>
+                    <mxGeometry x="190" y="280" width="444" height="626" as="geometry"/>
                 </mxCell>
                 <mxCell id="59" value="+ main(args: String[]): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="26" width="444" height="30" as="geometry"/>
@@ -114,7 +114,7 @@
                 <mxCell id="61" value="+ processClientRequests(Socket): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="86" width="444" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="62" value="- isProtocolOK(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
+                <mxCell id="98" value="- processCommand(String, Grid, OutputStream, Socket): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" vertex="1" parent="58">
                     <mxGeometry y="116" width="444" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="63" value="- handleQuitCommand(Socket, OutputStream): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
@@ -147,20 +147,23 @@
                 <mxCell id="73" value="- areCorrectCoordinates(Grid, String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="416" width="444" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="75" value="- getXCoordinate(String): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
+                <mxCell id="97" value="- areCoordinatesInRange(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="446" width="444" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="74" value="- getYCoordinate(String): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
+                <mxCell id="75" value="- getXCoordinate(String): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="476" width="444" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="77" value="- isNumeric(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
+                <mxCell id="74" value="- getYCoordinate(String): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="506" width="444" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="76" value="- isQuitCommand(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
+                <mxCell id="77" value="- isNumeric(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="536" width="444" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="78" value="- isCheatCommand(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
+                <mxCell id="76" value="- isQuitCommand(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
                     <mxGeometry y="566" width="444" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="78" value="- isCheatCommand(String): boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;whiteSpace=wrap;html=1;" parent="58" vertex="1">
+                    <mxGeometry y="596" width="444" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="90" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="78" target="14" edge="1">
                     <mxGeometry relative="1" as="geometry">

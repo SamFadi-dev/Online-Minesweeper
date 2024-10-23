@@ -7,6 +7,7 @@ public class MinesweeperClient
     {
         try
         {
+            @SuppressWarnings("resource")
             Socket clientSocket = new Socket("localhost", MinesweeperServer.SERVER_PORT);
             if(clientSocket.isConnected())
             {
@@ -22,22 +23,19 @@ public class MinesweeperClient
             {
                 // Send the user input to the server.
                 String userInput = keyboardReader.readLine();
+                if(userInput.isEmpty())
+                {
+                    System.out.println("Please enter a command.");
+                    continue;
+                }
                 userInput = userInput.concat("\r\n\r\n");
                 outputClient.write(userInput.getBytes());
-                outputClient.flush();
 
                 // Receive the server's response.
                 String receivedMessage = new String(msg, 0, inputServer.read(msg)).trim();
 
-                // Exit the client if the server sends "GOODBYE" or GAME LOST/WON. 
-                if(isGameOver(receivedMessage))
-                {
-                    System.out.println(receivedMessage);
-                    break;
-                }
                 System.out.println(receivedMessage + "\n");
             }
-            clientSocket.close();
         }
         catch(UnknownHostException e)
         {
@@ -47,13 +45,6 @@ public class MinesweeperClient
         {
             System.out.println("I/O error. Probably timeout and/or disconnected.");
         }
-    }
-
-    private static boolean isGameOver(String message)
-    {
-        return message.contains("GAME LOST") 
-            || message.contains("GAME WON") 
-            || message.contains("GOODBYE");
     }
 
     private static String printCommands()

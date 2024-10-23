@@ -75,59 +75,44 @@ public class MinesweeperServer
     {
         Grid grid = new Grid(GRID_SIZE);
         OutputStream outputServer = clientSocket.getOutputStream();
-        InputStream inputClient = clientSocket.getInputStream();
+        // Read the input from the client
+        BufferedReader reader = 
+            new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        String receivedMessage = null;
         try
         {
             // Set the timeout for the client socket
             clientSocket.setSoTimeout(INACTIVE_TIME_OUT);
-            byte[] buffer = new byte[MSG_SIZE];
-            StringBuilder messageBuilder = new StringBuilder();
-
+    
             // Loop until the client sends a "QUIT" command
             while(true)
-            {
-                int len = inputClient.read(buffer);
-                if(len == -1) break;
-                messageBuilder.append(new String(buffer, 0, len));
-                String receivedMessage = messageBuilder.toString();
-                
-                // Continue until the client sends a complete message
-                if(!isProtocolOK(receivedMessage)) continue;
-                receivedMessage = receivedMessage.trim();
-
-                if(isQuitCommand(receivedMessage))
+            {    
+                String line = reader.readLine();
+                if(line != null)
                 {
-                    handleQuitCommand(clientSocket, outputServer);
-                    break;
-                } 
-                else if(isCheatCommand(receivedMessage))
-                {
-                    handleCheatCommand(grid, outputServer);
-                } 
-                else if(isFlagCommand(receivedMessage))
-                {
-                    handleFlagCommand(outputServer, receivedMessage, grid);
-                } 
-                else if(isTryCommand(receivedMessage))
-                {
-                    // Check if the game is over while processing the TRY command
-                    boolean isOver = handleTryCommand(outputServer, receivedMessage, grid);
-                    if(isOver)
+                    line = line.trim();
+                    // If the client sends an empty line, process the command 
+                    //(following the protocol)
+                    if(line.isEmpty())
                     {
-                        System.out.println("Game over for client " 
-                            + clientSocket.getPort() + " => disconnecting.");
-                        clientSocket.close();
-                        break;
+                        // If the client sends an empty line and the received message is not null,
+                        // process the command (following the protocol)
+                        if(receivedMessage != null)
+                        {
+                            processCommand
+                                (receivedMessage, grid, outputServer, clientSocket);
+                            receivedMessage = null;
+                        }
+                        // If the client sends an empty line and the received message is null,
+                        // the client does not follow the protocol
+                        else
+                        {
+                            handleWrongCommand(clientSocket, outputServer);
+                        }
+                        continue;
                     }
-                } 
-                else 
-                {
-                    // Invalid command => send "WRONG" to the client
-                    handleWrongCommand(clientSocket, outputServer);
                 }
-
-                // Reset the message builder
-                messageBuilder.setLength(0);
+                receivedMessage = line;
             }
         }
         catch(SocketTimeoutException e)
@@ -135,16 +120,51 @@ public class MinesweeperServer
             System.out.println("Client " + clientSocket.getPort() + " timed out.");
             clientSocket.close();
         }
+        catch(IOException e)
+        {
+            System.out.println("Client " + clientSocket.getPort() + " disconnected.");
+            clientSocket.close();
+        }
     }
 
     /**
-     * Check if the protocol is correct.
+     * Process the command from the client.
      * @param receivedMessage The message received from the client.
-     * @return True if the protocol is correct, false otherwise.
+     * @param grid The grid object.
+     * @param outputServer The output stream to the client.
+     * @param clientSocket The client socket.
+     * @throws IOException If an I/O error occurs.
      */
-    private static boolean isProtocolOK(String receivedMessage)
+    private static void processCommand(String receivedMessage, 
+        Grid grid, OutputStream outputServer, Socket clientSocket) throws IOException
     {
-        return receivedMessage.endsWith("\r\n\r\n");
+        // Verify the command from the client
+        if(isQuitCommand(receivedMessage))
+        {
+            handleQuitCommand(clientSocket, outputServer);
+        } 
+        else if(isCheatCommand(receivedMessage))
+        {
+            handleCheatCommand(grid, outputServer);
+        } 
+        else if(isFlagCommand(receivedMessage))
+        {
+            handleFlagCommand(outputServer, receivedMessage, grid);
+        } 
+        else if(isTryCommand(receivedMessage))
+        {
+            boolean isOver = handleTryCommand(outputServer, receivedMessage, grid);
+            if(isOver)
+            {
+                System.out.println("Game over for client " 
+                    + clientSocket.getPort() + " => disconnecting.");
+                clientSocket.close();
+            }
+        } 
+        else 
+        {
+            handleWrongCommand(clientSocket, outputServer);
+        }
     }
 
     /**
@@ -157,8 +177,6 @@ public class MinesweeperServer
         throws IOException
     {
         printDisconnectedMessage(clientSocket);
-        outputServer.write("GOODBYE\r\n".getBytes());
-        outputServer.flush();
         clientSocket.close();
     }
     
@@ -180,18 +198,25 @@ public class MinesweeperServer
      * @param outputServer The output stream to the client.
      * @throws IOException If an I/O error occurs.
      */
-    private static void handleFlagCommand(OutputStream outputServer, String input, Grid grid) throws IOException
+    private static void handleFlagCommand(OutputStream outputServer, String input, Grid grid) 
+        throws IOException
     {
         // Write the updated grid to the client if the coordinates are valid
         if(areCorrectCoordinates(grid, input))
         {
+            if(!areCoordinatesInRange(input))
+            {
+                outputServer.write("INVALID RANGE\r\n\r\n".getBytes());
+                outputServer.flush();
+                return;
+            }
             grid.flagCell(getXCoordinate(input), getYCoordinate(input));
             outputServer.write(grid.convertGridToProtocol(false).getBytes());
             outputServer.flush();
         }
         else
         {
-            outputServer.write("INVALID RANGE\r\n".getBytes());
+            outputServer.write("WRONG\r\n\r\n".getBytes());
             outputServer.flush();
         }
     }
@@ -207,6 +232,12 @@ public class MinesweeperServer
         // Write the updated grid to the client if the coordinates are valid
         if(areCorrectCoordinates(grid, input))
         {
+            if(!areCoordinatesInRange(input))
+            {
+                outputServer.write("INVALID RANGE\r\n\r\n".getBytes());
+                outputServer.flush();
+                return false;
+            }
             grid.revealCell(getXCoordinate(input), getYCoordinate(input));
             // Check if the game is over
             if(grid.isWin() || grid.isLose())
@@ -225,7 +256,7 @@ public class MinesweeperServer
         else
         {
             // Client sent invalid coordinates
-            outputServer.write("INVALID RANGE\r\n".getBytes());
+            outputServer.write("WRONG\r\n\r\n".getBytes());
             outputServer.flush();
             isOver = false;
         }
@@ -241,7 +272,7 @@ public class MinesweeperServer
     private static void handleWrongCommand(Socket clientSocket, OutputStream outputServer) 
         throws IOException
     {
-        outputServer.write("WRONG\r\n".getBytes());
+        outputServer.write("WRONG\r\n\r\n".getBytes());
         outputServer.flush();
         printWrongInputMessage(clientSocket);
     }
@@ -307,19 +338,24 @@ public class MinesweeperServer
             {
                 return false;
             }
-            int x = getXCoordinate(input);
-            int y = getYCoordinate(input);
-            // Check if the coordinates are within the grid
-            if(x < 0 || x >= grid.getBoardSize() || y < 0 || y >= grid.getBoardSize())
-            {
-                return false;
-            }  
         }
         else
         {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Check if the coordinates from the client are in range.
+     * @param input The input from the client.
+     * @return True if the coordinates are in range, false otherwise.
+     */
+    static private boolean areCoordinatesInRange(String input)
+    {
+        int x = getXCoordinate(input);
+        int y = getYCoordinate(input);
+        return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE;
     }
 
     /**

@@ -177,6 +177,15 @@ public class Grid
      */
     public String convertGridToProtocol(boolean forceReveal)
     {
+        // Check if the game is won or lost => force reveal
+        boolean isWin = isWin();
+        boolean isLose = isLose();
+        if(isWin || isLose)
+        {
+            forceReveal = true;
+        }
+
+        // Convert the grid to a string
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < gridSize; i++)
         {
@@ -205,13 +214,15 @@ public class Grid
             }
             sb.append("\r\n");
         }
-        if(isWin())
+
+        // Append the game status if game over
+        if(isWin)
         {
-            sb.append("GAME WON");
+            sb.append("GAME WON" + "\r\n");
         }
-        else if(isLose())
+        else if(isLose)
         {
-            sb.append("GAME LOST");
+            sb.append("GAME LOST" + "\r\n");
         }
 
         sb.append("\r\n");
@@ -227,7 +238,7 @@ public class Grid
     {
         if(numberTurnsPlayed == 0)
         {
-            return new String("GAME NOT STARTED\r\n");
+            return new String("GAME NOT STARTED\r\n\r\n");
         }
         return convertGridToProtocol(true);
     }
@@ -312,9 +323,11 @@ public class Grid
         {
             for(int j = 0; j < gridSize; j++)
             {
-                // Count the number of unrevealed cells
+                // Count the number of unrevealed/flagged cells
                 if(currentGrid[i][j].getStatus() 
-                    == Coordinate.Status.UNREVEALED)
+                    == Coordinate.Status.UNREVEALED ||
+                    currentGrid[i][j].getStatus() 
+                    == Coordinate.Status.FLAGGED)
                 {
                     numUnrevealed++;
                 }
@@ -348,5 +361,4 @@ public class Grid
         }
         return false;
     }
-
 }
